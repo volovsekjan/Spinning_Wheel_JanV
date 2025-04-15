@@ -103,7 +103,7 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
   ctx.save();
   ctx.translate(canvas.width / 2, canvas.height / 2);
 
-  // First, draw all segments
+
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
     ctx.rotate(angle * i + rotation);
@@ -120,12 +120,10 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.restore();
   }
 
-  // Draw segment borders for the highlighted segment
   if (highlightSegment !== -1) {
     ctx.save();
     ctx.rotate(angle * highlightSegment + rotation);
-    
-    // Draw the complete segment border
+
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(radius, 0);
@@ -133,7 +131,7 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.lineTo(0, 0);
     ctx.closePath();
     
-    // Solid white border
+    // Solid bel border
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 35;
     ctx.stroke();
@@ -141,14 +139,12 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.restore();
   }
 
-  // Draw the outer circle
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, 2 * Math.PI);
   ctx.strokeStyle = '#FFFFFF';
   ctx.lineWidth = 12;
   ctx.stroke();
 
-  // Draw the segment divider lines
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
     ctx.rotate(angle * i + rotation);
@@ -161,11 +157,10 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.restore();
   }
 
-  // Draw the text
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
     ctx.rotate(angle * i + rotation + angle / 2);
-    const fontSize = numSegments === 2 ? 120 : numSegments === 3 ? 100 : numSegments === 8 ? 90 : 80;
+    const fontSize = numSegments === 2 ? 120 : numSegments === 3 ? 100 : numSegments === 6 || numSegments === 8 ? 90 : 80;
     ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -177,11 +172,11 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.restore();
   }
 
-  // Draw the center logo
+  // BitStarz logo
   ctx.drawImage(centerLogo, -225, -225, 450, 450);
   ctx.restore();
 
-  // Draw the pointer
+  // Pointer
   ctx.save();
   ctx.translate(canvas.width / 2, 60);
   ctx.beginPath();
@@ -272,17 +267,16 @@ async function startRecording(useBorderSpin) {
   const target = isNaN(selected) ? Math.floor(Math.random() * segments.length) : selected;
 
   try {
-    // Ensure high quality rendering
+    // Visoka kvaliteta rendering
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     
-    // Draw initial frame
     drawWheel(-1, true);
     
-    // Wait for the frame to be rendered
+    // Pocaka da se frame rendera
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Start recording
+    // Start snemanja
     await recordSmoothSpin(target, useBorderSpin);
   } catch (error) {
     console.error('Napaka med snemanjem:', error);
@@ -291,14 +285,12 @@ async function startRecording(useBorderSpin) {
 
 async function recordSmoothSpin(targetIndex, useBorderSpin) {
   const fps = 60;
-  const duration = 5000; // 5 seconds for spin to match preview
+  const duration = 5000; 
   const frameTime = 1000 / fps;
-  const staticDuration = 3000; // 3 seconds for final display
+  const staticDuration = 3000; // 3 sekunde na koncu snemanja
 
-  // Draw initial frame with green screen
   drawWheel(-1, true);
   
-  // Wait for the frame to be rendered
   await new Promise(resolve => setTimeout(resolve, 100));
 
   const stream = canvas.captureStream(fps);
@@ -331,16 +323,14 @@ async function recordSmoothSpin(targetIndex, useBorderSpin) {
     const elapsed = currentTime - startTime;
     const totalDuration = duration + staticDuration;
     
-    // Calculate progress for the spinning phase
     const spinProgress = Math.min(elapsed / duration, 1);
     
     if (spinProgress < 1) {
-      // Still in spinning phase
       const eased = easeInOutCustom(spinProgress);
       const wobble = spinProgress > 0.95 ? Math.sin(spinProgress * 50) * 0.001 : 0;
       
       const anglePerSegment = (2 * Math.PI) / segments.length;
-      const baseSpins = 8; // Match preview spin
+      const baseSpins = 8; 
       const targetAngle = anglePerSegment * targetIndex;
       const finalRotation = (2 * Math.PI * baseSpins) +
         (-Math.PI / 2 - targetAngle - (useBorderSpin ? anglePerSegment * 0.95 : anglePerSegment * 0.3));
@@ -348,7 +338,7 @@ async function recordSmoothSpin(targetIndex, useBorderSpin) {
       rotation = finalRotation * eased + wobble;
       drawWheel(-1, true);
     } else {
-      // In static phase - show highlight after delay
+      // Pokaze highlight po delayu
       rotation = (-Math.PI / 2) - (targetIndex * (2 * Math.PI / segments.length)) - 
         (useBorderSpin ? (2 * Math.PI / segments.length) * 0.95 : (2 * Math.PI / segments.length) * 0.3);
       
@@ -360,14 +350,12 @@ async function recordSmoothSpin(targetIndex, useBorderSpin) {
       drawWheel(showHighlight ? targetIndex : -1, true);
     }
 
-    // Continue animation if we haven't reached total duration
     if (elapsed < totalDuration) {
       const nextFrameTime = lastFrameTime + frameTime;
       const timeToNextFrame = nextFrameTime - currentTime;
       setTimeout(() => requestAnimationFrame(animate), Math.max(0, timeToNextFrame));
       lastFrameTime = nextFrameTime;
     } else {
-      // Ensure we show one last frame with highlight before stopping
       drawWheel(targetIndex, true);
       setTimeout(() => recorder.stop(), 100);
     }
@@ -376,7 +364,7 @@ async function recordSmoothSpin(targetIndex, useBorderSpin) {
   requestAnimationFrame(animate);
 }
 
-// Dogodki
+ // Actionlistenerji
 spinBtn.addEventListener('click', () => {
   if (isSpinning) return;
   const selected = parseInt(targetSelector.value);
