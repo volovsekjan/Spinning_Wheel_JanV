@@ -1,3 +1,4 @@
+
 body {
   margin: 0;
   padding: 0;
@@ -7,6 +8,9 @@ body {
   height: 100vh;
 }
 
+/* =========================================
+   Postavitev
+========================================= */
 .main-layout {
   display: flex;
   height: 100vh;
@@ -22,6 +26,9 @@ body {
   justify-content: center;
 }
 
+/* =========================================
+   Sidebar
+========================================= */
 .sidebar {
   width: 220px;
   background-color: #1f1f1f;
@@ -46,6 +53,9 @@ body {
   border-radius: 6px;
 }
 
+/* =========================================
+   Kolo 
+========================================= */
 canvas {
   background: transparent;
   border: 2px dashed #fff;
@@ -54,6 +64,9 @@ canvas {
   height: 500px;
 }
 
+/* =========================================
+   Vnos polj
+========================================= */
 .inputs {
   margin: 10px 0;
 }
@@ -64,163 +77,15 @@ canvas {
   width: 120px;
 }
 
+/* =========================================
+   Gumbi + select
+========================================= */
 .controls {
   margin-top: 15px;
 }
 
-button, select {
-  padding: 8px 12px;
-  margin: 6px;
-  font-size: 16px;
-  cursor: pointer;
-}
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background: #0b0b0b;
-  color: #fff;
-  height: 100vh;
-}
-
-.main-layout {
-  display: flex;
-  height: 100vh;
-}
-
-.container {
-  flex: 1;
-  text-align: center;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar {
-  width: 220px;
-  background-color: #1f1f1f;
-  padding: 20px;
-  border-left: 2px solid #333;
-}
-
-.sidebar h3 {
-  margin-top: 0;
-}
-
-.wheel-option {
-  display: block;
-  width: 100%;
-  margin: 10px 0;
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  background: #333;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-}
-
-canvas {
-  background: transparent;
-  border: 2px dashed #fff;
-  margin-bottom: 20px;
-  width: 500px;
-  height: 500px;
-}
-
-.inputs {
-  margin: 10px 0;
-}
-
-#segmentsInputs input {
-  margin: 4px;
-  padding: 6px;
-  width: 120px;
-}
-
-.controls {
-  margin-top: 15px;
-}
-
-button, select {
-  padding: 8px 12px;
-  margin: 6px;
-  font-size: 16px;
-  cursor: pointer;
-}
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background: #0b0b0b;
-  color: #fff;
-  height: 100vh;
-}
-
-.main-layout {
-  display: flex;
-  height: 100vh;
-}
-
-.container {
-  flex: 1;
-  text-align: center;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar {
-  width: 220px;
-  background-color: #1f1f1f;
-  padding: 20px;
-  border-left: 2px solid #333;
-}
-
-.sidebar h3 {
-  margin-top: 0;
-}
-
-.wheel-option {
-  display: block;
-  width: 100%;
-  margin: 10px 0;
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  background: #333;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-}
-
-canvas {
-  background: transparent;
-  border: 2px dashed #fff;
-  margin-bottom: 20px;
-  width: 500px;
-  height: 500px;
-}
-
-.inputs {
-  margin: 10px 0;
-}
-
-#segmentsInputs input {
-  margin: 4px;
-  padding: 6px;
-  width: 120px;
-}
-
-.controls {
-  margin-top: 15px;
-}
-
-button, select {
+button,
+select {
   padding: 8px 12px;
   margin: 6px;
   font-size: 16px;

@@ -1,13 +1,14 @@
+// ===============================
+// 1. Inicializacija
+// ===============================
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 1920;
-canvas.height = 1920;
+canvas.width = 960;
+canvas.height = 960;
 
 const centerLogo = new Image();
 centerLogo.src = 'img/bitstarz_logo.png';
-centerLogo.onload = () => {
-  drawWheel();
-};
+centerLogo.onload = () => drawWheel();
 
 const spinBtn = document.getElementById('spinBtn');
 const borderSpinBtn = document.getElementById('borderSpinBtn');
@@ -22,6 +23,9 @@ let rotation = 0;
 let isSpinning = false;
 let wheelType = 'default';
 
+// ===============================
+// 2. Konfiguracija kolesa
+// ===============================
 const wheelConfigs = {
   default: {
     labels: Array.from({ length: 8 }, (_, i) => `Polje ${i + 1}`),
@@ -45,6 +49,9 @@ const wheelConfigs = {
   }
 };
 
+// ===============================
+// 3. UI
+// ===============================
 function setWheel(type) {
   wheelType = type;
   const config = wheelConfigs[type];
@@ -55,15 +62,21 @@ function setWheel(type) {
   inputsContainer.innerHTML = '';
   if (config.editable) {
     segments.forEach((label, i) => {
-      const input = document.createElement('input');
-      input.placeholder = `Polje ${i + 1}`;
-      input.value = label;
-      input.addEventListener('input', (e) => {
+      const textarea = document.createElement('textarea');
+      textarea.placeholder = `Polje ${i + 1}`;
+      textarea.value = label;
+      textarea.rows = 2;
+      textarea.style.resize = 'none';
+      textarea.style.width = '120px';
+      textarea.style.height = '40px';
+      textarea.style.padding = '6px';
+      textarea.style.margin = '4px';
+      textarea.addEventListener('input', (e) => {
         segments[i] = e.target.value || `Polje ${i + 1}`;
         updateSegmentOptions();
         drawWheel();
       });
-      inputsContainer.appendChild(input);
+      inputsContainer.appendChild(textarea);
     });
   }
 }
@@ -78,13 +91,22 @@ function updateSegmentOptions() {
   });
 }
 
-function easeInOutCustom(t) {
-  if (t < 0.4) {
-    return (t / 0.4) ** 2 * 0.4;
-  } else {
-    const p = (t - 0.4) / 0.6;
-    const eased = 1 - Math.pow(1 - p, 3);
-    return 0.4 + eased * 0.6;
+function getSelectedTarget() {
+  const val = parseInt(targetSelector.value);
+  return isNaN(val) ? Math.floor(Math.random() * segments.length) : val;
+}
+
+// ===============================
+// 4. Kolo
+// ===============================
+function drawMultilineText(ctx, text, x, y, maxWidth, lineHeight) {
+  const lines = text.split('\n');
+  let yPos = y - (lines.length - 1) * lineHeight / 2;
+  
+  for (let i = 0; i < lines.length; i++) {
+    ctx.strokeText(lines[i], x, yPos);
+    ctx.fillText(lines[i], x, yPos);
+    yPos += lineHeight;
   }
 }
 
@@ -92,17 +114,17 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
   const numSegments = segments.length;
   const angle = (2 * Math.PI) / numSegments;
   const colors = wheelConfigs[wheelType].colors;
-  const radius = 850;
+  const radius = 430;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (greenScreen) {
-    ctx.fillStyle = numSegments === 3 ? '#FFFF00' : '#00FF00';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+
+  // Zeleno ozadje
+  ctx.fillStyle = '#00FF00';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
 
   ctx.save();
   ctx.translate(canvas.width / 2, canvas.height / 2);
-
 
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
@@ -112,7 +134,7 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.arc(0, 0, radius, 0, angle);
     ctx.closePath();
 
-    const grad = ctx.createRadialGradient(0, 0, 100, 0, 0, radius);
+    const grad = ctx.createRadialGradient(0, 0, 50, 0, 0, radius);
     grad.addColorStop(0, lightenColor(colors[i % colors.length], 0.2));
     grad.addColorStop(1, colors[i % colors.length]);
     ctx.fillStyle = grad;
@@ -123,26 +145,20 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
   if (highlightSegment !== -1) {
     ctx.save();
     ctx.rotate(angle * highlightSegment + rotation);
-
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(radius, 0);
     ctx.arc(0, 0, radius, 0, angle);
-    ctx.lineTo(0, 0);
     ctx.closePath();
-    
-    // Solid bel border
     ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 35;
+    ctx.lineWidth = 20;
     ctx.stroke();
-    
     ctx.restore();
   }
 
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, 2 * Math.PI);
   ctx.strokeStyle = '#FFFFFF';
-  ctx.lineWidth = 12;
+  ctx.lineWidth = 8;
   ctx.stroke();
 
   for (let i = 0; i < numSegments; i++) {
@@ -152,7 +168,7 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.moveTo(0, 0);
     ctx.lineTo(radius, 0);
     ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 12;
+    ctx.lineWidth = 8;
     ctx.stroke();
     ctx.restore();
   }
@@ -160,33 +176,31 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
     ctx.rotate(angle * i + rotation + angle / 2);
-    const fontSize = numSegments === 2 ? 120 : numSegments === 3 ? 100 : numSegments === 6 || numSegments === 8 ? 90 : 80;
+    const fontSize = numSegments === 2 ? 56 : numSegments === 3 ? 52 : numSegments === 6 ? 44 : 40;
     ctx.font = `bold ${fontSize}px Arial`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 12;
-    ctx.strokeText(segments[i], 530, 0);
-    ctx.fillStyle = "#FFF";
-    ctx.fillText(segments[i], 530, 0);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 4;
+    ctx.fillStyle = '#FFF';
+    drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
     ctx.restore();
   }
 
-  // BitStarz logo
-  ctx.drawImage(centerLogo, -225, -225, 450, 450);
+  ctx.drawImage(centerLogo, -100, -100, 200, 200);
   ctx.restore();
 
-  // Pointer
+  // Puscica - pointer
   ctx.save();
-  ctx.translate(canvas.width / 2, 60);
+  ctx.translate(canvas.width / 2, 20);
   ctx.beginPath();
-  ctx.moveTo(-100, 0);
-  ctx.lineTo(100, 0);
-  ctx.lineTo(0, 200);
+  ctx.moveTo(-40, 0);
+  ctx.lineTo(40, 0);
+  ctx.lineTo(0, 80);
   ctx.closePath();
   ctx.fillStyle = '#FFF';
   ctx.strokeStyle = '#000';
-  ctx.lineWidth = 10;
+  ctx.lineWidth = 5;
   ctx.fill();
   ctx.stroke();
   ctx.restore();
@@ -201,53 +215,61 @@ function lightenColor(color, percent) {
   return `rgb(${Math.min(R, 255)},${Math.min(G, 255)},${Math.min(B, 255)})`;
 }
 
+function easeInOutCustom(t) {
+  return t < 0.5
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+// ===============================
+// 5. Spin animacija
+// ===============================
 async function spinToSegment(targetIndex, stopOnBorder = false) {
   return new Promise((resolve) => {
     const anglePerSegment = (2 * Math.PI) / segments.length;
-    const baseSpins = 8;
-    const spinDuration = 5500;
+    const baseSpins = 10;
+    const spinDuration = stopOnBorder ? 8000 : 7000;
     const highlightDelay = 300;
 
     const targetAngle = anglePerSegment * targetIndex;
     const finalRotation = (2 * Math.PI * baseSpins) +
-      (-Math.PI / 2 - targetAngle - (stopOnBorder ? anglePerSegment * 0.95 : anglePerSegment * 0.3));
+      (-Math.PI / 2 - targetAngle - (stopOnBorder ? anglePerSegment * 0.98 : anglePerSegment * 0.3));
 
     let start = null;
-    let lastFrameTime = 0;
-    const targetFPS = 120;
-    const frameTime = 1000 / targetFPS;
     let highlightStartTime = null;
+    let lastTimestamp = null;
 
     function animate(timestamp) {
       if (!start) {
         start = timestamp;
-        lastFrameTime = timestamp;
-        requestAnimationFrame(animate);
-        return;
+        lastTimestamp = timestamp;
       }
-
+      
       const elapsed = timestamp - start;
+      const deltaTime = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+      
       const progress = Math.min(elapsed / spinDuration, 1);
+      const eased = stopOnBorder 
+        ? progress < 0.5 
+          ? 4 * progress * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2
+        : easeInOutCustom(progress);
       
-      const deltaTime = timestamp - lastFrameTime;
+      const microVibration = progress < 0.8 ? Math.sin(elapsed * 0.1) * 0.001 : 0;
       
-      if (deltaTime >= frameTime) {
-        const eased = easeInOutCustom(progress);
-        const wobble = progress > 0.92 ? Math.sin(progress * 45) * 0.0008 : 0;
-        
-        rotation = finalRotation * eased + wobble;
-        
-        if (progress >= 1 && !highlightStartTime) {
-          highlightStartTime = timestamp;
-        }
-        
-        const showHighlight = highlightStartTime && (timestamp - highlightStartTime) >= highlightDelay;
-        drawWheel(showHighlight ? targetIndex : -1);
-        
-        lastFrameTime = timestamp;
-      }
+      const wobble = progress > 0.92 
+        ? Math.sin(progress * (stopOnBorder ? 60 : 50)) * (1 - progress) * (stopOnBorder ? 0.003 : 0.002)
+        : 0;
+      
+      rotation = finalRotation * eased + wobble + microVibration;
 
-      if (progress < 1 || (highlightStartTime && (timestamp - highlightStartTime) < highlightDelay + 1000)) {
+      if (progress >= 1 && !highlightStartTime) highlightStartTime = timestamp;
+
+      const showHighlight = highlightStartTime && (timestamp - highlightStartTime) >= highlightDelay;
+      drawWheel(showHighlight ? targetIndex : -1);
+
+      if (progress < 1 || (timestamp - highlightStartTime) < highlightDelay + 1000) {
         requestAnimationFrame(animate);
       } else {
         isSpinning = false;
@@ -260,138 +282,82 @@ async function spinToSegment(targetIndex, stopOnBorder = false) {
   });
 }
 
-async function startRecording(useBorderSpin) {
-  if (isSpinning) return;
-
-  const selected = parseInt(targetSelector.value);
-  const target = isNaN(selected) ? Math.floor(Math.random() * segments.length) : selected;
-
-  try {
-    // Visoka kvaliteta rendering
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    
-    drawWheel(-1, true);
-    
-    // Pocaka da se frame rendera
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Start snemanja
-    await recordSmoothSpin(target, useBorderSpin);
-  } catch (error) {
-    console.error('Napaka med snemanjem:', error);
+// ===============================
+// 6. Snemanje s RecordRTC
+// ===============================
+async function recordWithRecordRTC(targetIndex, useBorderSpin = false) {
+  if (isSpinning) {
+    console.log('Snemanje že poteka');
+    return;
   }
-}
 
-async function recordSmoothSpin(targetIndex, useBorderSpin) {
-  const fps = 60;
-  const duration = 5000; 
-  const frameTime = 1000 / fps;
-  const staticDuration = 3000; // 3 sekunde na koncu snemanja
+  isSpinning = true;
+  console.log('🎬 Začenjam snemanje z visokim bitrate...');
 
-  drawWheel(-1, true);
-  
-  await new Promise(resolve => setTimeout(resolve, 100));
-
-  const stream = canvas.captureStream(fps);
-  const recorder = new MediaRecorder(stream, {
+  const stream = canvas.captureStream(120);
+  const recorder = new RecordRTC(stream, {
+    type: 'video',
     mimeType: 'video/webm;codecs=vp9',
-    videoBitsPerSecond: 12000000
+    videoBitsPerSecond: 12000000,
+    frameInterval: 1,
+    quality: 100
   });
 
-  const chunks = [];
-  recorder.ondataavailable = (e) => chunks.push(e.data);
-  recorder.onstop = () => {
-    const blob = new Blob(chunks, { type: 'video/webm' });
+  drawWheel(-1, true);
+  await new Promise(resolve => setTimeout(resolve, 200));
+  recorder.startRecording();
+
+  await spinToSegment(targetIndex, useBorderSpin);
+
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  recorder.stopRecording(() => {
+    const blob = recorder.getBlob();
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement('a');
     a.href = url;
-    a.download = `wheel_${wheelType}_${useBorderSpin ? 'border' : 'normal'}.webm`;
+    a.download = `wheel_${wheelType}_${useBorderSpin ? 'border' : 'normal'}_HD.webm`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
 
-  recorder.start();
-
-  const startTime = performance.now();
-  let lastFrameTime = startTime;
-  let highlightStartTime = null;
-
-  function animate(currentTime) {
-    const elapsed = currentTime - startTime;
-    const totalDuration = duration + staticDuration;
-    
-    const spinProgress = Math.min(elapsed / duration, 1);
-    
-    if (spinProgress < 1) {
-      const eased = easeInOutCustom(spinProgress);
-      const wobble = spinProgress > 0.95 ? Math.sin(spinProgress * 50) * 0.001 : 0;
-      
-      const anglePerSegment = (2 * Math.PI) / segments.length;
-      const baseSpins = 8; 
-      const targetAngle = anglePerSegment * targetIndex;
-      const finalRotation = (2 * Math.PI * baseSpins) +
-        (-Math.PI / 2 - targetAngle - (useBorderSpin ? anglePerSegment * 0.95 : anglePerSegment * 0.3));
-      
-      rotation = finalRotation * eased + wobble;
-      drawWheel(-1, true);
-    } else {
-      // Pokaze highlight po delayu
-      rotation = (-Math.PI / 2) - (targetIndex * (2 * Math.PI / segments.length)) - 
-        (useBorderSpin ? (2 * Math.PI / segments.length) * 0.95 : (2 * Math.PI / segments.length) * 0.3);
-      
-      if (!highlightStartTime) {
-        highlightStartTime = currentTime;
-      }
-      
-      const showHighlight = highlightStartTime && (currentTime - highlightStartTime) >= 300;
-      drawWheel(showHighlight ? targetIndex : -1, true);
-    }
-
-    if (elapsed < totalDuration) {
-      const nextFrameTime = lastFrameTime + frameTime;
-      const timeToNextFrame = nextFrameTime - currentTime;
-      setTimeout(() => requestAnimationFrame(animate), Math.max(0, timeToNextFrame));
-      lastFrameTime = nextFrameTime;
-    } else {
-      drawWheel(targetIndex, true);
-      setTimeout(() => recorder.stop(), 100);
-    }
-  }
-
-  requestAnimationFrame(animate);
+    console.log('✅ Snemanje končano v visoki kvaliteti!');
+    isSpinning = false;
+  });
 }
 
- // Actionlistenerji
+// ===============================
+// 7. Event listenerji
+// ===============================
 spinBtn.addEventListener('click', () => {
-  if (isSpinning) return;
-  const selected = parseInt(targetSelector.value);
-  const target = isNaN(selected) ? Math.floor(Math.random() * segments.length) : selected;
-  spinToSegment(target, false);
+  if (!isSpinning) spinToSegment(getSelectedTarget(), false);
 });
 
 borderSpinBtn.addEventListener('click', () => {
-  if (isSpinning) return;
-  const selected = parseInt(targetSelector.value);
-  const target = isNaN(selected) ? Math.floor(Math.random() * segments.length) : selected;
-  spinToSegment(target, true);
+  if (!isSpinning) spinToSegment(getSelectedTarget(), true);
 });
 
 recordNormalBtn.addEventListener('click', () => {
-  startRecording(false);
+  console.log('Klik na Snemaj navadno');
+  if (!isSpinning) recordWithRecordRTC(getSelectedTarget(), false);
 });
 
 recordBorderBtn.addEventListener('click', () => {
-  startRecording(true);
+  console.log('Klik na Snemaj na meji');
+  if (!isSpinning) recordWithRecordRTC(getSelectedTarget(), true);
 });
 
 wheelButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
+    wheelButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
     setWheel(btn.dataset.wheel);
   });
 });
 
+// ===============================
+// 8. Inicializacija
+// ===============================
 setWheel('default');
-
