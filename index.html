@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bitstarz Spinning Wheel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="main-layout">
+    <div class="container">
+      <canvas id="wheelCanvas"></canvas>
+
+      <div class="inputs">
+        <h2>✏️ Vnesi besede za vsako polje:</h2>
+        <div id="segmentsInputs"></div>
+      </div>
+
+      <div class="controls">
+        <button id="spinBtn">🎯 Zavrti</button>
+        <button id="borderSpinBtn">🔄 Vrti na meji</button>
+        <button id="recordNormalBtn">🎥 Snemaj navadno</button>
+        <button id="recordBorderBtn">📹 Snemaj na meji</button>
+        <select id="targetSegment">
+          <option value="">🎪 Izberi polje za ustavitev</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <h3>🎨 Izberi wheel</h3>
+      <div class="wheel-options">
+        <button class="wheel-option" data-wheel="half">🔄 2 polji</button>
+        <button class="wheel-option" data-wheel="three">🎲 3 polja</button>
+        <button class="wheel-option" data-wheel="six">🎯 6 polj</button>
+        <button class="wheel-option" data-wheel="default">🎡 8 polj</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
