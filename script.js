@@ -187,7 +187,7 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.restore();
   }
 
-  ctx.drawImage(centerLogo, -100, -100, 200, 200);
+  ctx.drawImage(centerLogo, -120, -120, 240, 240);
   ctx.restore();
 
   // Puscica - pointer
