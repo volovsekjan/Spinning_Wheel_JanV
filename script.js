@@ -17,11 +17,50 @@ const recordBorderBtn = document.getElementById('recordBorderBtn');
 const inputsContainer = document.getElementById('segmentsInputs');
 const targetSelector = document.getElementById('targetSegment');
 const wheelButtons = document.querySelectorAll('.wheel-option');
+const pointerPositionToggle = document.getElementById('pointerPositionToggle');
+const pointerPositionText = document.getElementById('pointerPositionText');
 
 let segments = [];
 let rotation = 0;
 let isSpinning = false;
 let wheelType = 'default';
+let pointerPosition = 'top'; // 'top' ali 'right'
+let spinSpeed = 'default';
+
+const speedSlider = document.getElementById('speedSlider');
+const speedText = document.getElementById('speedText');
+
+function updateSpeedText(value) {
+  switch(parseInt(value)) {
+    case 0:
+      speedText.textContent = 'Običajno';
+      break;
+    case 1:
+      speedText.textContent = 'Hitro & Kratko';
+      break;
+    case 2:
+      speedText.textContent = 'Počasi & Kratko';
+      break;
+  }
+}
+
+speedSlider.addEventListener('input', function() {
+  updateSpeedText(this.value);
+  switch(parseInt(this.value)) {
+    case 0:
+      spinSpeed = 'default';
+      break;
+    case 1:
+      spinSpeed = 'quick';
+      break;
+    case 2:
+      spinSpeed = 'fast';
+      break;
+  }
+});
+
+// Nastavimo začetni tekst
+updateSpeedText(speedSlider.value);
 
 // ===============================
 // 2. Konfiguracija kolesa
@@ -176,7 +215,7 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
     ctx.rotate(angle * i + rotation + angle / 2);
-    const fontSize = numSegments === 2 ? 56 : numSegments === 3 ? 52 : numSegments === 6 ? 44 : 40;
+    const fontSize = numSegments === 2 ? 48 : numSegments === 3 ? 46 : numSegments === 6 ? 40 : 36;
     ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -187,20 +226,28 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.restore();
   }
 
-  ctx.drawImage(centerLogo, -120, -120, 240, 240);
+  ctx.drawImage(centerLogo, -100, -100, 200, 200);
   ctx.restore();
 
-  // Puscica - pointer
+  // pointer
   ctx.save();
-  ctx.translate(canvas.width / 2, 20);
-  ctx.beginPath();
-  ctx.moveTo(-40, 0);
-  ctx.lineTo(40, 0);
-  ctx.lineTo(0, 80);
+  if (pointerPosition === 'top') {
+    ctx.translate(canvas.width / 2, 20);
+    ctx.beginPath();
+    ctx.moveTo(-50, 0);
+    ctx.lineTo(50, 0);
+    ctx.lineTo(0, 100);
+  } else {
+    ctx.translate(canvas.width - 20, canvas.height / 2);
+    ctx.beginPath();
+    ctx.moveTo(0, -50);
+    ctx.lineTo(0, 50);
+    ctx.lineTo(-100, 0);
+  }
   ctx.closePath();
   ctx.fillStyle = '#FFF';
   ctx.strokeStyle = '#000';
-  ctx.lineWidth = 5;
+  ctx.lineWidth = 6;
   ctx.fill();
   ctx.stroke();
   ctx.restore();
@@ -227,13 +274,35 @@ function easeInOutCustom(t) {
 async function spinToSegment(targetIndex, stopOnBorder = false) {
   return new Promise((resolve) => {
     const anglePerSegment = (2 * Math.PI) / segments.length;
-    const baseSpins = 10;
-    const spinDuration = stopOnBorder ? 8000 : 7000;
-    const highlightDelay = 300;
+    
+    // Nastavitve za različne hitrosti
+    let baseSpins, spinDuration;
+    
+    switch(spinSpeed) {
+      case 'quick':
+        baseSpins = 10;
+        spinDuration = 4000; // Hitro vrtenje - enako število obratov, krajši čas
+        break;
+      case 'fast':
+        baseSpins = 6;
+        spinDuration = 7000; // Kratko vrtenje - manj obratov, normalen čas
+        break;
+      default:
+        baseSpins = 10;
+        spinDuration = 7000; // Privzete nastavitve
+    }
 
+    const highlightDelay = 300;
     const targetAngle = anglePerSegment * targetIndex;
-    const finalRotation = (2 * Math.PI * baseSpins) +
-      (-Math.PI / 2 - targetAngle - (stopOnBorder ? anglePerSegment * 0.98 : anglePerSegment * 0.3));
+    let finalRotation;
+    
+    if (pointerPosition === 'top') {
+      finalRotation = (2 * Math.PI * baseSpins) +
+        (-Math.PI / 2 - targetAngle - (stopOnBorder ? anglePerSegment * 0.95 : anglePerSegment * 0.3));
+    } else {
+      finalRotation = (2 * Math.PI * baseSpins) +
+        (0 - targetAngle - (stopOnBorder ? anglePerSegment * 0.95 : anglePerSegment * 0.3));
+    }
 
     let start = null;
     let highlightStartTime = null;
@@ -250,17 +319,10 @@ async function spinToSegment(targetIndex, stopOnBorder = false) {
       lastTimestamp = timestamp;
       
       const progress = Math.min(elapsed / spinDuration, 1);
-      const eased = stopOnBorder 
-        ? progress < 0.5 
-          ? 4 * progress * progress * progress 
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2
-        : easeInOutCustom(progress);
+      const eased = easeInOutCustom(progress);
       
       const microVibration = progress < 0.8 ? Math.sin(elapsed * 0.1) * 0.001 : 0;
-      
-      const wobble = progress > 0.92 
-        ? Math.sin(progress * (stopOnBorder ? 60 : 50)) * (1 - progress) * (stopOnBorder ? 0.003 : 0.002)
-        : 0;
+      const wobble = progress > 0.92 ? Math.sin(progress * 50) * (1 - progress) * 0.002 : 0;
       
       rotation = finalRotation * eased + wobble + microVibration;
 
@@ -357,7 +419,128 @@ wheelButtons.forEach((btn) => {
   });
 });
 
+pointerPositionToggle.addEventListener('change', function() {
+  pointerPosition = this.checked ? 'right' : 'top';
+  pointerPositionText.textContent = this.checked ? 'Desno' : 'Zgoraj';
+  drawWheel();
+});
+
+// Dodamo event listener za radio buttone
+document.querySelectorAll('input[name="spinSpeed"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    spinSpeed = this.value;
+  });
+});
+
 // ===============================
 // 8. Inicializacija
 // ===============================
 setWheel('default');
+
+// ===============================
+// Gifts Game Logic
+// ===============================
+const giftsGame = document.getElementById('giftsGame');
+const wheelContainer = document.querySelector('.container');
+const gameButtons = document.querySelectorAll('.game-btn');
+const gifts = document.querySelectorAll('.gift');
+const giftAnimation = document.getElementById('giftAnimation');
+const gift1Animation = document.getElementById('gift1Animation');
+let giftTexts = ['', '', ''];
+let isGiftOpening = false;
+
+// Initialize Lottie animation
+let lottieAnim = null;
+
+// Load the JSON animation data
+console.log('Starting to load animation...');
+fetch('Lottie_animation/gift_animation.json')
+  .then(response => {
+    console.log('Response received:', response);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('JSON data loaded successfully:', data);
+    if (window.lottie) {
+      console.log('Initializing Lottie animation...');
+      lottieAnim = lottie.loadAnimation({
+        container: gift1Animation,
+        renderer: 'svg',
+        loop: true,
+        autoplay: false,
+        animationData: data
+      });
+      console.log('Lottie animation initialized');
+    } else {
+      console.error('Lottie library not found');
+    }
+  })
+  .catch(error => {
+    console.error('Error loading animation data:', error);
+  });
+
+// Game selection with 404 error message
+gameButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    gameButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    if (btn.dataset.game === 'gifts') {
+      // Show 404 error message
+      alert('🎁 Error 404: Igra darila coming real soon... 🎁');
+      // Switch back to wheel
+      btn.classList.remove('active');
+      document.querySelector('.game-btn[data-game="wheel"]').classList.add('active');
+    }
+  });
+});
+
+// Gift text inputs
+for (let i = 1; i <= 3; i++) {
+  const input = document.getElementById(`gift${i}Text`);
+  input.addEventListener('input', (e) => {
+    giftTexts[i-1] = e.target.value;
+    updateGiftText(i-1);
+  });
+}
+
+function updateGiftText(index) {
+  const giftTextElement = gifts[index].querySelector('.gift-text');
+  giftTextElement.textContent = giftTexts[index];
+}
+
+// Gift opening animation
+gifts.forEach((gift, index) => {
+  gift.addEventListener('click', async () => {
+    if (isGiftOpening) return;
+    isGiftOpening = true;
+
+    // Open selected gift first
+    gift.classList.add('opened');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Then open all other gifts
+    gifts.forEach((g, i) => {
+      if (g !== gift) {
+        g.classList.add('opened');
+      }
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+    isGiftOpening = false;
+  });
+});
+
+// Reset gifts when switching games
+function resetGifts() {
+  gifts.forEach(gift => gift.classList.remove('opened'));
+}
+
+gameButtons.forEach(btn => {
+  if (btn.dataset.game === 'wheel') {
+    btn.addEventListener('click', resetGifts);
+  }
+});

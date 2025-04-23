@@ -10,12 +10,7 @@
   <div class="main-layout">
     <div class="container">
       <canvas id="wheelCanvas"></canvas>
-
-      <div class="inputs">
-        <h2>✏️ Vnesi besede za vsako polje:</h2>
-        <div id="segmentsInputs"></div>
-      </div>
-
+      
       <div class="controls">
         <button id="spinBtn">🎯 Zavrti</button>
         <button id="borderSpinBtn">🔄 Vrti na meji</button>
@@ -25,20 +20,54 @@
           <option value="">🎪 Izberi polje za ustavitev</option>
         </select>
       </div>
+
+      <div class="inputs">
+        <h2>✏️ Vnesi besede za vsako polje:</h2>
+        <div id="segmentsInputs"></div>
+      </div>
     </div>
 
     <div class="sidebar">
-      <h3>🎨 Izberi wheel</h3>
-      <div class="wheel-options">
-        <button class="wheel-option" data-wheel="half">🔄 2 polji</button>
-        <button class="wheel-option" data-wheel="three">🎲 3 polja</button>
-        <button class="wheel-option" data-wheel="six">🎯 6 polj</button>
-        <button class="wheel-option" data-wheel="default">🎡 8 polj</button>
+      <div class="control-group game-type">
+        <div class="game-selector">
+          <button class="game-btn active" data-game="wheel">🎡 Kolo</button>
+          <button class="game-btn" data-game="gifts">🎁 Darila</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>🎨 Izberi wheel</h3>
+        <div class="wheel-options">
+          <button class="wheel-option" data-wheel="half">🎲 2 polji</button>
+          <button class="wheel-option" data-wheel="three">🎪 3 polja</button>
+          <button class="wheel-option" data-wheel="six">🎯 6 polj</button>
+          <button class="wheel-option active" data-wheel="default">🎡 8 polj</button>
+        </div>
+      </div>
+
+      <div class="control-group pointer-toggle">
+        <div class="switch-container">
+          <label class="switch">
+            <input type="checkbox" id="pointerPositionToggle">
+            <span class="slider"></span>
+          </label>
+          <span class="position-text">🎯 <span id="pointerPositionText">Zgoraj</span></span>
+        </div>
+      </div>
+      
+      <div class="control-group spin-speed">
+        <span class="control-label">⚡🐌 Hitrost</span>
+        <div class="speed-slider-container">
+          <input type="range" min="0" max="2" value="0" step="1" id="speedSlider" class="speed-slider">
+          <div class="speed-labels">
+            <span id="speedText">Običajno</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- RecordRTC knjiznica za snemanje -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
   <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
   <script src="script.js"></script>
 </body>
