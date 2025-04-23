@@ -30,6 +30,9 @@ let spinSpeed = 'default';
 const speedSlider = document.getElementById('speedSlider');
 const speedText = document.getElementById('speedText');
 
+// Add counter for video exports
+let videoExportCounter = 1;
+
 function updateSpeedText(value) {
   switch(parseInt(value)) {
     case 0:
@@ -216,13 +219,16 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.save();
     ctx.rotate(angle * i + rotation + angle / 2);
     const fontSize = numSegments === 2 ? 48 : numSegments === 3 ? 46 : numSegments === 6 ? 40 : 36;
-    ctx.font = `bold ${fontSize}px Arial`;
+    ctx.font = `bold ${fontSize}px Roboto`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 4;
     ctx.fillStyle = '#FFF';
-    drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
+    
+    // Rotate text 180 degrees to make it readable
+    ctx.rotate(Math.PI);
+    drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
     ctx.restore();
   }
 
@@ -366,11 +372,10 @@ async function recordWithRecordRTC(targetIndex, useBorderSpin = false) {
   });
 
   drawWheel(-1, true);
-  await new Promise(resolve => setTimeout(resolve, 200));
   recorder.startRecording();
 
+  await new Promise(resolve => setTimeout(resolve, 2000));
   await spinToSegment(targetIndex, useBorderSpin);
-
   await new Promise(resolve => setTimeout(resolve, 2000));
 
   recorder.stopRecording(() => {
@@ -379,7 +384,7 @@ async function recordWithRecordRTC(targetIndex, useBorderSpin = false) {
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = `wheel_${wheelType}_${useBorderSpin ? 'border' : 'normal'}_HD.webm`;
+    a.download = `spinning_wheel_${videoExportCounter++}.webm`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
