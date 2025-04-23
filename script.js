@@ -26,6 +26,7 @@ let isSpinning = false;
 let wheelType = 'default';
 let pointerPosition = 'top'; // 'top' ali 'right'
 let spinSpeed = 'default';
+let textDynamic = true; // Changed variable name and default value
 
 const speedSlider = document.getElementById('speedSlider');
 const speedText = document.getElementById('speedText');
@@ -225,10 +226,32 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 4;
     ctx.fillStyle = '#FFF';
-    
-    // Rotate text 180 degrees to make it readable
-    ctx.rotate(Math.PI);
-    drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
+
+    if (textDynamic) {
+      // Dynamic text orientation based on position
+      let currentAngle = (angle * i + rotation + angle / 2) % (2 * Math.PI);
+      if (currentAngle < 0) currentAngle += 2 * Math.PI;
+      
+      if (pointerPosition === 'top') {
+        if (currentAngle > Math.PI * 1.75 || currentAngle < Math.PI * 0.25) {
+          drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
+        } else {
+          ctx.rotate(Math.PI);
+          drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
+        }
+      } else {
+        if (currentAngle > Math.PI * 1.75 || currentAngle < Math.PI * 0.25) {
+          drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
+        } else {
+          ctx.rotate(Math.PI);
+          drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
+        }
+      }
+    } else {
+      // Static text orientation - all fields on the right side readable
+      // Fields 1,2,7,8 (i=0,1,6,7) are on the right side and should be readable
+      drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
+    }
     ctx.restore();
   }
 
@@ -548,4 +571,38 @@ gameButtons.forEach(btn => {
   if (btn.dataset.game === 'wheel') {
     btn.addEventListener('click', resetGifts);
   }
+});
+
+// Add text orientation toggle button to HTML
+const textOrientationToggle = document.createElement('div');
+textOrientationToggle.innerHTML = `
+  <div class="control-group">
+    <div class="switch-container">
+      <label class="switch">
+        <input type="checkbox" id="textOrientationToggle">
+        <span class="slider"></span>
+      </label>
+      <span class="switch-label" id="textOrientationText">Besedilo: Dinamično</span>
+    </div>
+  </div>
+`;
+
+// Insert the toggle before the pointer position toggle
+const pointerToggleElement = document.querySelector('.pointer-toggle');
+pointerToggleElement.parentNode.insertBefore(textOrientationToggle, pointerToggleElement);
+
+// Update event listener for text orientation toggle
+document.addEventListener('DOMContentLoaded', () => {
+    const textOrientationToggle = document.getElementById('textOrientationToggle');
+    if (textOrientationToggle) {
+        textOrientationToggle.checked = textDynamic; // Set initial state
+        textOrientationToggle.addEventListener('change', function() {
+            textDynamic = this.checked;
+            const textOrientationText = document.getElementById('textOrientationText');
+            if (textOrientationText) {
+                textOrientationText.textContent = this.checked ? 'Besedilo: Dinamično' : 'Besedilo: Statično';
+            }
+            drawWheel();
+        });
+    }
 });
