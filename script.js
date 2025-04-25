@@ -219,12 +219,12 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
     ctx.rotate(angle * i + rotation + angle / 2);
-    const fontSize = numSegments === 2 ? 48 : numSegments === 3 ? 46 : numSegments === 6 ? 40 : 36;
-    ctx.font = `bold ${fontSize}px Roboto`;
+    const fontSize = numSegments === 2 ? 59 : numSegments === 3 ? 57 : numSegments === 6 ? 51 : 47;
+    ctx.font = `900 ${fontSize}px Roboto`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 7;
     ctx.fillStyle = '#FFF';
 
     if (textDynamic) {
