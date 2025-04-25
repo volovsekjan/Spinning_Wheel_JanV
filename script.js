@@ -228,31 +228,36 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.fillStyle = '#FFF';
 
     if (textDynamic) {
-      // Dynamic text orientation based on position
+      // Dinamična orientacija glede na absolutni kot segmenta
       let currentAngle = (angle * i + rotation + angle / 2) % (2 * Math.PI);
       if (currentAngle < 0) currentAngle += 2 * Math.PI;
-      
-      if (pointerPosition === 'top') {
-        if (currentAngle > Math.PI * 1.75 || currentAngle < Math.PI * 0.25) {
-          drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
-        } else {
-          ctx.rotate(Math.PI);
-          drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
-        }
+    
+      const needsRotation = currentAngle > Math.PI / 2 && currentAngle < Math.PI * 1.5;
+    
+      if (needsRotation) {
+        ctx.rotate(Math.PI);
+        drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
       } else {
-        if (currentAngle > Math.PI * 1.75 || currentAngle < Math.PI * 0.25) {
-          drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
-        } else {
-          ctx.rotate(Math.PI);
-          drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
-        }
+        drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
       }
     } else {
-      // Static text orientation - all fields on the right side readable
-      // Fields 1,2,7,8 (i=0,1,6,7) are on the right side and should be readable
-      drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
+      // Statična orientacija – vedno enaka, neodvisno od trenutne rotacije
+      // Besedilo vgravirano kot na fizičnem wheelu, samo pri risanju
+      let baseAngle = (angle * i + angle / 2) % (2 * Math.PI);
+      if (baseAngle < 0) baseAngle += 2 * Math.PI;
+    
+      const needsRotation = baseAngle > Math.PI / 2 && baseAngle < Math.PI * 1.5;
+    
+      if (needsRotation) {
+        ctx.rotate(Math.PI);
+        drawMultilineText(ctx, segments[i], -240, 0, 200, fontSize * 1.2);
+      } else {
+        drawMultilineText(ctx, segments[i], 240, 0, 200, fontSize * 1.2);
+      }
     }
     ctx.restore();
+    
+    
   }
 
   ctx.drawImage(centerLogo, -100, -100, 200, 200);
@@ -463,6 +468,19 @@ document.querySelectorAll('input[name="spinSpeed"]').forEach(radio => {
 // ===============================
 // 8. Inicializacija
 // ===============================
+
+// Gumb za preklop med dinamičnim in realnim (statičnim) prikazom besedila
+const toggleTextOrientationBtn = document.getElementById('toggleTextOrientationBtn');
+
+toggleTextOrientationBtn.addEventListener('click', () => {
+  textDynamic = !textDynamic;
+  toggleTextOrientationBtn.textContent = textDynamic
+    ? '🌀 Tekst: Dinamičen'
+    : '📍 Tekst: Statičen (realno)';
+  drawWheel();
+});
+
+
 setWheel('default');
 
 // ===============================
@@ -572,24 +590,6 @@ gameButtons.forEach(btn => {
     btn.addEventListener('click', resetGifts);
   }
 });
-
-// Add text orientation toggle button to HTML
-const textOrientationToggle = document.createElement('div');
-textOrientationToggle.innerHTML = `
-  <div class="control-group">
-    <div class="switch-container">
-      <label class="switch">
-        <input type="checkbox" id="textOrientationToggle">
-        <span class="slider"></span>
-      </label>
-      <span class="switch-label" id="textOrientationText">Besedilo: Dinamično</span>
-    </div>
-  </div>
-`;
-
-// Insert the toggle before the pointer position toggle
-const pointerToggleElement = document.querySelector('.pointer-toggle');
-pointerToggleElement.parentNode.insertBefore(textOrientationToggle, pointerToggleElement);
 
 // Update event listener for text orientation toggle
 document.addEventListener('DOMContentLoaded', () => {
