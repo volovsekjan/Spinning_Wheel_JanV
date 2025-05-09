@@ -7,8 +7,12 @@ canvas.width = 960;
 canvas.height = 960;
 
 const centerLogo = new Image();
+const centerLogoAlt = new Image();
 centerLogo.src = 'img/bitstarz_logo.png';
+centerLogoAlt.src = 'img/you_wont.png';
+let showLogo = true; // true = bitstarz, false = you_wont
 centerLogo.onload = () => drawWheel();
+centerLogoAlt.onload = () => drawWheel();
 
 const spinBtn = document.getElementById('spinBtn');
 const borderSpinBtn = document.getElementById('borderSpinBtn');
@@ -33,6 +37,8 @@ const speedText = document.getElementById('speedText');
 
 // Add counter for video exports
 let videoExportCounter = 1;
+
+let highlightFlash = 0; // 0 = brez flasha, 1 = poln flash
 
 function updateSpeedText(value) {
   switch(parseInt(value)) {
@@ -157,7 +163,7 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
   const numSegments = segments.length;
   const angle = (2 * Math.PI) / numSegments;
   const colors = wheelConfigs[wheelType].colors;
-  const radius = 430;
+  const radius = 400;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -168,6 +174,33 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
 
   ctx.save();
   ctx.translate(canvas.width / 2, canvas.height / 2);
+
+  // Zunanji border
+  ctx.beginPath();
+  ctx.arc(0, 0, radius + 36, 0, 2 * Math.PI);
+  ctx.fillStyle = '#6d1a00'; // temno rdeča
+  ctx.fill();
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#3a0d00';
+  ctx.stroke();
+
+  // Rumene lučke - statične, med spinningom breathajo v belo
+  const numLights = 16;
+  const borderOuter = radius + 36;
+  const borderInner = radius + 12;
+  const lightRadius = (borderOuter + borderInner) / 2;
+  for (let i = 0; i < numLights; i++) {
+    const lightAngle = (2 * Math.PI / numLights) * i;
+    const x = Math.cos(lightAngle) * lightRadius;
+    const y = Math.sin(lightAngle) * lightRadius;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, 14, 0, 2 * Math.PI);
+    ctx.fillStyle = '#ffe066';
+    ctx.shadowBlur = 0;
+    ctx.fill();
+    ctx.restore();
+  }
 
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
@@ -192,8 +225,23 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.moveTo(0, 0);
     ctx.arc(0, 0, radius, 0, angle);
     ctx.closePath();
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 20;
+    // Flash efekt
+    if (highlightFlash > 0.01) {
+      ctx.save();
+      ctx.globalAlpha = highlightFlash;
+      // Uporabi barvo segmenta, a zelo svetlo
+      const flashColor = lightenColor(colors[highlightSegment % colors.length], 0.7);
+      ctx.fillStyle = flashColor;
+      ctx.shadowColor = flashColor;
+      ctx.shadowBlur = 60 * highlightFlash;
+      ctx.fill();
+      ctx.restore();
+    }
+    // Svetel rob
+    ctx.strokeStyle = '#fffbe0';
+    ctx.lineWidth = 22;
+    ctx.shadowColor = '#fffbe0';
+    ctx.shadowBlur = 18;
     ctx.stroke();
     ctx.restore();
   }
@@ -216,10 +264,31 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
     ctx.restore();
   }
 
+  // Shading v samem krogu (radialni gradient)
+  const shadingGrad = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius);
+  shadingGrad.addColorStop(0, 'rgba(255,255,255,0.10)');
+  shadingGrad.addColorStop(0.5, 'rgba(255,255,255,0.01)');
+  shadingGrad.addColorStop(0.85, 'rgba(0,0,0,0.10)');
+  shadingGrad.addColorStop(1, 'rgba(0,0,0,0.18)');
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.closePath();
+  ctx.fillStyle = shadingGrad;
+  ctx.fill();
+  ctx.restore();
+
   for (let i = 0; i < numSegments; i++) {
     ctx.save();
     ctx.rotate(angle * i + rotation + angle / 2);
-    const fontSize = numSegments === 2 ? 59 : numSegments === 3 ? 57 : numSegments === 6 ? 51 : 47;
+    let fontSize;
+    if (numSegments === 2) {
+      fontSize = 60;
+    } else if (numSegments === 3) {
+      fontSize = 54;
+    } else {
+      fontSize = 46;
+    }
     ctx.font = `900 ${fontSize}px Roboto`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -256,35 +325,84 @@ function drawWheel(highlightSegment = -1, greenScreen = false) {
       }
     }
     ctx.restore();
-    
-    
   }
 
-  ctx.drawImage(centerLogo, -100, -100, 200, 200);
+  // Senca pod sliko v sredini (shading)
+  ctx.save();
+  ctx.transform(1.25, 0, 0, 1, 0, 0); // make shadow more oval (wider horizontally)
+  const shadowGrad = ctx.createRadialGradient(0, 35, 18, 0, 35, 70); // slightly smaller
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.32)');
+  shadowGrad.addColorStop(0.6, 'rgba(0,0,0,0.13)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(0, 35, 60, 0, 2 * Math.PI); // slightly smaller and more oval
+  ctx.closePath();
+  ctx.globalAlpha = 0.65;
+  ctx.fillStyle = shadowGrad;
+  ctx.fill();
+  ctx.restore();
+  // Slika v sredini
+  if (showLogo) {
+    ctx.drawImage(centerLogo, -120, -120, 240, 240);
+  } else {
+    ctx.drawImage(centerLogoAlt, -120, -120, 240, 240);
+  }
   ctx.restore();
 
   // pointer
   ctx.save();
   if (pointerPosition === 'top') {
-    ctx.translate(canvas.width / 2, 20);
+    ctx.translate(canvas.width / 2, 20); // višje
     ctx.beginPath();
-    ctx.moveTo(-50, 0);
-    ctx.lineTo(50, 0);
-    ctx.lineTo(0, 100);
+    ctx.moveTo(-45, 0);
+    ctx.lineTo(45, 0);
+    ctx.quadraticCurveTo(0, 110, 0, 110);
+    ctx.closePath();
+    // Gradient za zlato in shading
+    const grad = ctx.createLinearGradient(0, 0, 0, 110);
+    grad.addColorStop(0, '#fffbe0');
+    grad.addColorStop(0.2, '#FFD700');
+    grad.addColorStop(0.7, '#b8860b');
+    grad.addColorStop(1, '#8a6c00');
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Zlati outline
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    // Notranji rob za svetlost
+    ctx.strokeStyle = '#fffbe0';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
   } else {
     ctx.translate(canvas.width - 20, canvas.height / 2);
     ctx.beginPath();
-    ctx.moveTo(0, -50);
-    ctx.lineTo(0, 50);
-    ctx.lineTo(-100, 0);
+    ctx.moveTo(0, -45);
+    ctx.lineTo(0, 45);
+    ctx.quadraticCurveTo(-110, 0, -110, 0);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, -45, -110, 0);
+    grad.addColorStop(0, '#fffbe0');
+    grad.addColorStop(0.2, '#FFD700');
+    grad.addColorStop(0.7, '#b8860b');
+    grad.addColorStop(1, '#8a6c00');
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.strokeStyle = '#fffbe0';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
   }
-  ctx.closePath();
-  ctx.fillStyle = '#FFF';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 6;
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 }
 
 function lightenColor(color, percent) {
@@ -366,8 +484,16 @@ async function spinToSegment(targetIndex, stopOnBorder = false) {
       drawWheel(showHighlight ? targetIndex : -1);
 
       if (progress < 1 || (timestamp - highlightStartTime) < highlightDelay + 1000) {
+        // Flash animacija po koncu
+        if (progress >= 1 && highlightFlash < 1) {
+          highlightFlash = 1;
+        }
+        if (highlightFlash > 0) {
+          highlightFlash *= 0.92; // fade out
+        }
         requestAnimationFrame(animate);
       } else {
+        highlightFlash = 0;
         isSpinning = false;
         resolve();
       }
@@ -480,6 +606,27 @@ toggleTextOrientationBtn.addEventListener('click', () => {
   drawWheel();
 });
 
+// ===============================
+// Logo ali sivi krog v sredini
+// ===============================
+function toggleLogo() {
+  showLogo = !showLogo;
+  drawWheel();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleLogoBtn = document.getElementById('toggleLogoBtn');
+  if (toggleLogoBtn) {
+    const updateBtnText = () => {
+      toggleLogoBtn.textContent = showLogo ? 'BitStarz logo: Vklopljen' : 'You_wont: Vklopljen';
+    };
+    updateBtnText();
+    toggleLogoBtn.addEventListener('click', () => {
+      toggleLogo();
+      updateBtnText();
+    });
+  }
+});
 
 setWheel('default');
 

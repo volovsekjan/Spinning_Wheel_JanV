@@ -37,7 +37,7 @@
       </div>
 
       <div class="control-group">
-        <h3>🎨 Izberi wheel</h3>
+        <h3>🎡 Izberi wheel</h3>
         <div class="wheel-options">
           <button class="wheel-option" data-wheel="half">🎲 2 polji</button>
           <button class="wheel-option" data-wheel="three">🎪 3 polja</button>
@@ -47,6 +47,7 @@
       </div>
 
       <div class="control-group pointer-toggle">
+        <h3>🧭 Pozicija puščice</h3>
         <div class="switch-container">
           <label class="switch">
             <input type="checkbox" id="pointerPositionToggle">
@@ -57,7 +58,7 @@
       </div>
       
       <div class="control-group spin-speed">
-        <span class="control-label">⚡🐌 Hitrost</span>
+        <h3>⚡🐌 Hitrost vrtenja</h3>
         <div class="speed-slider-container">
           <input type="range" min="0" max="2" value="0" step="1" id="speedSlider" class="speed-slider">
           <div class="speed-labels">
@@ -65,9 +66,12 @@
           </div>
         </div>
       </div>
-      <div>
-      <button id="toggleTextOrientationBtn">🌀 Tekst: Dinamičen</button>
-    </div>
+      <hr style="margin: 10px 0 8px 0; border: none; border-top: 1.5px solid #333;">
+      <div class="control-group text-logo-toggle">
+        <h3>⚙️ Nastavitve prikaza</h3>
+        <button id="toggleTextOrientationBtn">🌀 Tekst: Dinamičen</button>
+        <button id="toggleLogoBtn">BitStarz logo: Vklopljen</button>
+      </div>
     </div>
   </div>
 
